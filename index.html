@@ -1,66 +1,64 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Auto Fill Executor</title>
+  <title>📌 Bookmarklet Generator</title>
   <style>
     body {
-      font-family: sans-serif;
-      padding: 2rem;
-      background: #f8f9fa;
+      font-family: Arial, sans-serif;
+      margin: 40px auto;
+      max-width: 900px;
     }
     textarea {
       width: 100%;
-      height: 400px;
+      height: 300px;
       font-family: monospace;
       font-size: 14px;
-      padding: 1rem;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      background: white;
     }
     button {
-      margin-top: 1rem;
-      padding: 0.5rem 1.5rem;
+      margin-top: 10px;
+      padding: 10px 20px;
       font-size: 16px;
-      border: none;
-      border-radius: 6px;
-      background-color: #007bff;
-      color: white;
       cursor: pointer;
     }
-    button:hover {
-      background-color: #0056b3;
+    #output {
+      margin-top: 20px;
+      font-family: monospace;
+      background: #f0f0f0;
+      padding: 10px;
+      border: 1px dashed #ccc;
+      word-break: break-word;
     }
   </style>
 </head>
 <body>
-  <h2>💡 Auto Fill Executor (Giống F12 Console)</h2>
-  <p>Dán <strong>toàn bộ JavaScript</strong> bạn đang dùng vào ô dưới và nhấn <strong>Run</strong>.</p>
-  <textarea id="jsInput" placeholder="Dán toàn bộ đoạn mã JavaScript ở đây..."></textarea>
-  <button onclick="runCode()">▶️ Run</button>
+  <h2>📌 Bookmarklet Generator</h2>
+  <p>Dán toàn bộ mã JavaScript vào ô bên dưới, rồi nhấn <b>Tạo Bookmarklet</b>.</p>
+  <textarea id="code" placeholder="Dán code JavaScript từ Google Sheet vào đây..."></textarea><br>
+  <button onclick="generateBookmarklet()">🔗 Tạo Bookmarklet</button>
+  <div id="output"></div>
 
   <script>
-    function runCode() {
-      let rawCode = document.getElementById("jsInput").value.trim();
+    function generateBookmarklet() {
+      let raw = document.getElementById("code").value.trim();
 
-      if (!rawCode) {
-        alert("Vui lòng dán mã JavaScript vào!");
+      if (!raw) {
+        alert("⚠️ Vui lòng dán đoạn mã trước khi tạo!");
         return;
       }
 
-      // Bao đoạn mã vào async function nếu chưa có
-      if (!rawCode.startsWith("(async") && !rawCode.startsWith("(()") && !rawCode.includes("function()")) {
-        rawCode = `(async () => {\n${rawCode}\n})();`;
+      // Xử lý lỗi "" từ Google Sheet nếu có
+      if (raw.includes('""')) {
+        raw = raw.replace(/""/g, '"');
       }
 
-      try {
-        eval(rawCode);
-      } catch (err) {
-        alert("❌ Lỗi khi chạy mã: " + err.message);
-        console.error("Lỗi chi tiết:", err);
-      }
+      // Encode URI và bao đoạn mã trong IIFE
+      const wrapped = `javascript:(function(){\n${raw}\n})();`;
+
+      const encoded = wrapped.replace(/\n/g, '\\n').replace(/"/g, '%22');
+      const htmlOutput = `<b>📎 Bookmarklet:</b><br><code>${wrapped}</code>`;
+
+      document.getElementById("output").innerHTML = htmlOutput;
     }
   </script>
 </body>
