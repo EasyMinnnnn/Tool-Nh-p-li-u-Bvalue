@@ -34,28 +34,36 @@
 </head>
 <body>
   <h2>🧠 Auto Fill Executor</h2>
-  <p>Dán đoạn JavaScript từ Google Sheet vào ô bên dưới, rồi bấm "Run".</p>
-  <textarea id="code" placeholder="(function(){ ... })(); // mã từ Google Sheets"></textarea><br/>
+  <p>Dán đoạn JavaScript từ Google Sheet vào ô bên dưới (dạng <code>=</code><code>"(function(){...})();"</code>), rồi bấm "Run".</p>
+  <textarea id="code" placeholder='Dán mã từ Google Sheets vào đây...'></textarea><br/>
   <button onclick="runCode()">▶️ Run</button>
 
   <script>
     function runCode() {
-      let raw = document.getElementById("code").value;
+      let raw = document.getElementById("code").value.trim();
 
-      // ✅ Bước 1: Sửa các lỗi thường gặp từ Google Sheets
+      // ✅ 1. Xử lý dấu nháy tiếng Việt
       raw = raw
-        .replace(/""/g, '"')           // Excel xuất "" thay vì "
-        .replace(/[“”]/g, '"')         // dấu ngoặc kép tiếng Việt
-        .replace(/[‘’]/g, "'");        // dấu nháy đơn tiếng Việt
+        .replace(/[“”]/g, '"')
+        .replace(/[‘’]/g, "'");
 
-      // ✅ Bước 2: Cảnh báo nếu người dùng chưa bọc trong (function(){...})()
-      if (!raw.trim().startsWith("(function")) {
-        if (!confirm("⚠️ Mã dán vào không phải dạng hàm. Vẫn chạy?")) return;
+      // ✅ 2. Nếu là chuỗi dạng ="(function(){...})();", thì bỏ = và dấu ngoặc ngoài
+      if (raw.startsWith('="') && raw.endsWith('"')) {
+        raw = raw.slice(2, -1); // bỏ =" ở đầu và " ở cuối
       }
 
+      // ✅ 3. Chuẩn hóa để chạy bằng eval (escape ngược \ và ")
       try {
+        const jsCode = JSON.parse(
+          '"' + raw
+            .replace(/\\/g, '\\\\')
+            .replace(/"/g, '\\"')
+            .replace(/\n/g, '\\n') + '"'
+        );
+
         if (!confirm("Bạn có chắc chắn muốn chạy đoạn mã này?")) return;
-        eval(raw);
+        eval(jsCode);
+
       } catch (err) {
         alert("❌ Lỗi khi chạy mã: " + err.message);
         console.error(err);
