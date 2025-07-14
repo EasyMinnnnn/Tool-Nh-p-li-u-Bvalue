@@ -1,64 +1,82 @@
 <!DOCTYPE html>
-<html>
+<html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <title>📌 Bookmarklet Generator</title>
+  <title>AutoFill Tool</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      margin: 40px auto;
-      max-width: 900px;
+      font-family: sans-serif;
+      margin: 20px;
     }
     textarea {
       width: 100%;
-      height: 300px;
-      font-family: monospace;
-      font-size: 14px;
+      height: 200px;
     }
     button {
       margin-top: 10px;
-      padding: 10px 20px;
-      font-size: 16px;
-      cursor: pointer;
-    }
-    #output {
-      margin-top: 20px;
-      font-family: monospace;
-      background: #f0f0f0;
       padding: 10px;
-      border: 1px dashed #ccc;
-      word-break: break-word;
     }
   </style>
 </head>
 <body>
-  <h2>📌 Bookmarklet Generator</h2>
-  <p>Dán toàn bộ mã JavaScript vào ô bên dưới, rồi nhấn <b>Tạo Bookmarklet</b>.</p>
-  <textarea id="code" placeholder="Dán code JavaScript từ Google Sheet vào đây..."></textarea><br>
-  <button onclick="generateBookmarklet()">🔗 Tạo Bookmarklet</button>
-  <div id="output"></div>
+  <h2>🚀 AutoFill Tool</h2>
+  <p>Dán dữ liệu từ Excel (mảng đối tượng có <code>xpath</code> và <code>value</code>)</p>
+  <textarea id="dataInput" placeholder='[{ "xpath": "...", "value": "..." }, ...]'></textarea>
+  <br>
+  <button onclick="runScript()">Chạy AutoFill</button>
 
   <script>
-    function generateBookmarklet() {
-      let raw = document.getElementById("code").value.trim();
+    function delay(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
 
-      if (!raw) {
-        alert("⚠️ Vui lòng dán đoạn mã trước khi tạo!");
+    async function fillField(xpath, value) {
+      if (!value || value.trim() === '') {
+        console.warn('❌ Bỏ qua giá trị trống:', xpath);
         return;
       }
 
-      // Xử lý lỗi "" từ Google Sheet nếu có
-      if (raw.includes('""')) {
-        raw = raw.replace(/""/g, '"');
+      const el = document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+      if (!el) {
+        console.warn('❌ Không tìm thấy phần tử:', xpath);
+        return;
       }
 
-      // Encode URI và bao đoạn mã trong IIFE
-      const wrapped = `javascript:(function(){\n${raw}\n})();`;
+      el.focus();
+      if (el.tagName === 'SELECT') {
+        let found = false;
+        for (const option of el.options) {
+          if (option.text.trim() === value.trim()) {
+            el.value = option.value;
+            found = true;
+            break;
+          }
+        }
+        if (!found) {
+          console.warn('❌ Không tìm thấy option phù hợp:', value, xpath);
+        }
+        el.dispatchEvent(new Event('change', { bubbles: true }));
+      } else {
+        el.value = value;
+        el.dispatchEvent(new InputEvent('input', { bubbles: true }));
+        el.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+      console.log('✅ Đã điền:', xpath, '->', value);
+    }
 
-      const encoded = wrapped.replace(/\n/g, '\\n').replace(/"/g, '%22');
-      const htmlOutput = `<b>📎 Bookmarklet:</b><br><code>${wrapped}</code>`;
-
-      document.getElementById("output").innerHTML = htmlOutput;
+    async function runScript() {
+      try {
+        const raw = document.getElementById('dataInput').value;
+        const data = eval(raw); // Cảnh báo: dùng eval khi bạn chắc chắn nội dung đúng
+        for (const { xpath, value } of data) {
+          await fillField(xpath, value);
+          await delay(100); // delay nhẹ để tránh lỗi khi DOM cập nhật chậm
+        }
+        alert('✅ Hoàn tất điền form!');
+      } catch (e) {
+        alert('❌ Lỗi khi chạy mã: ' + e.message);
+        console.error(e);
+      }
     }
   </script>
 </body>
