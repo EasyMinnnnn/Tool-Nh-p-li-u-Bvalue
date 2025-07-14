@@ -1,52 +1,65 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Auto Fill Executor</title>
   <style>
     body {
       font-family: sans-serif;
-      max-width: 960px;
-      margin: 2rem auto;
       padding: 2rem;
+      background: #f8f9fa;
     }
     textarea {
       width: 100%;
-      height: 300px;
+      height: 400px;
       font-family: monospace;
       font-size: 14px;
+      padding: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      background: white;
     }
     button {
       margin-top: 1rem;
-      padding: 0.5rem 1rem;
+      padding: 0.5rem 1.5rem;
       font-size: 16px;
+      border: none;
+      border-radius: 6px;
+      background-color: #007bff;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0056b3;
     }
   </style>
 </head>
 <body>
-  <h1>🧠 Auto Fill Executor</h1>
-  <p>Dán đoạn JavaScript từ Google Sheets vào ô bên dưới, rồi bấm "Run".</p>
-  <textarea id="codeInput" placeholder="Dán code từ Google Sheet vào đây..."></textarea>
-  <br />
+  <h2>💡 Auto Fill Executor (Giống F12 Console)</h2>
+  <p>Dán <strong>toàn bộ JavaScript</strong> bạn đang dùng vào ô dưới và nhấn <strong>Run</strong>.</p>
+  <textarea id="jsInput" placeholder="Dán toàn bộ đoạn mã JavaScript ở đây..."></textarea>
   <button onclick="runCode()">▶️ Run</button>
 
   <script>
     function runCode() {
-      const raw = document.getElementById("codeInput").value;
+      let rawCode = document.getElementById("jsInput").value.trim();
+
+      if (!rawCode) {
+        alert("Vui lòng dán mã JavaScript vào!");
+        return;
+      }
+
+      // Bao đoạn mã vào async function nếu chưa có
+      if (!rawCode.startsWith("(async") && !rawCode.startsWith("(()") && !rawCode.includes("function()")) {
+        rawCode = `(async () => {\n${rawCode}\n})();`;
+      }
 
       try {
-        // Nếu người dùng copy từ Excel dạng "=...", thì loại bỏ đoạn đó
-        const cleaned = raw.replace(/^\s*=+/, "").trim();
-
-        // Thử xử lý JSON string nếu có dấu "" bị dư (Excel double quote)
-        const evalSafe = cleaned.replace(/""/g, '"');
-
-        // Gán lại vào Function để cho phép các lệnh async hoạt động
-        const asyncFn = new Function(`(async () => { ${evalSafe} })()`);
-        asyncFn();
-      } catch (e) {
-        alert("❌ Lỗi khi chạy mã: " + e.message);
-        console.error(e);
+        eval(rawCode);
+      } catch (err) {
+        alert("❌ Lỗi khi chạy mã: " + err.message);
+        console.error("Lỗi chi tiết:", err);
       }
     }
   </script>
