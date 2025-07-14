@@ -2,10 +2,10 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Auto Fill Runner</title>
+  <title>🧠 Auto Fill Executor</title>
   <style>
     body {
-      font-family: sans-serif;
+      font-family: Arial, sans-serif;
       margin: 40px auto;
       max-width: 800px;
     }
@@ -31,11 +31,14 @@
 
   <script>
     function runCode() {
-      const code = document.getElementById("code").value;
-      if (!code) return alert("Vui lòng dán mã vào ô.");
-      if (!confirm("Bạn có chắc muốn chạy đoạn mã này?")) return;
+      let raw = document.getElementById("code").value;
+
+      // ✅ Xử lý "" thành "
+      raw = raw.replace(/""/g, '"');
+
       try {
-        eval(code);  // Thực thi mã giống F12 Console
+        if (!confirm("Bạn có chắc chắn muốn chạy đoạn mã này?")) return;
+        eval(raw);
       } catch (err) {
         alert("❌ Lỗi khi chạy mã: " + err.message);
         console.error(err);
