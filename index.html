@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="vi">
 <head>
   <meta charset="UTF-8">
   <title>🧠 Auto Fill Executor</title>
@@ -8,33 +8,50 @@
       font-family: Arial, sans-serif;
       margin: 40px auto;
       max-width: 800px;
+      padding: 0 20px;
     }
     textarea {
       width: 100%;
       height: 300px;
       font-family: monospace;
       font-size: 14px;
+      padding: 10px;
     }
     button {
       margin-top: 10px;
       padding: 10px 20px;
       font-size: 16px;
       cursor: pointer;
+      background-color: #2d89ef;
+      color: white;
+      border: none;
+      border-radius: 4px;
+    }
+    button:hover {
+      background-color: #1b66c9;
     }
   </style>
 </head>
 <body>
   <h2>🧠 Auto Fill Executor</h2>
   <p>Dán đoạn JavaScript từ Google Sheet vào ô bên dưới, rồi bấm "Run".</p>
-  <textarea id="code" placeholder="Dán code từ Google Sheet vào đây..."></textarea><br/>
+  <textarea id="code" placeholder="(function(){ ... })(); // mã từ Google Sheets"></textarea><br/>
   <button onclick="runCode()">▶️ Run</button>
 
   <script>
     function runCode() {
       let raw = document.getElementById("code").value;
 
-      // ✅ Xử lý "" thành "
-      raw = raw.replace(/""/g, '"');
+      // ✅ Bước 1: Sửa các lỗi thường gặp từ Google Sheets
+      raw = raw
+        .replace(/""/g, '"')           // Excel xuất "" thay vì "
+        .replace(/[“”]/g, '"')         // dấu ngoặc kép tiếng Việt
+        .replace(/[‘’]/g, "'");        // dấu nháy đơn tiếng Việt
+
+      // ✅ Bước 2: Cảnh báo nếu người dùng chưa bọc trong (function(){...})()
+      if (!raw.trim().startsWith("(function")) {
+        if (!confirm("⚠️ Mã dán vào không phải dạng hàm. Vẫn chạy?")) return;
+      }
 
       try {
         if (!confirm("Bạn có chắc chắn muốn chạy đoạn mã này?")) return;
