@@ -42,28 +42,24 @@
     function runCode() {
       let raw = document.getElementById("code").value.trim();
 
-      // ✅ 1. Xử lý dấu nháy tiếng Việt
+      // ✅ Sửa dấu ngoặc kép tiếng Việt
       raw = raw
         .replace(/[“”]/g, '"')
         .replace(/[‘’]/g, "'");
 
-      // ✅ 2. Nếu là chuỗi dạng ="(function(){...})();", thì bỏ = và dấu ngoặc ngoài
+      // ✅ Nếu là chuỗi kiểu ="(function(){...})();", thì bỏ ngoài
       if (raw.startsWith('="') && raw.endsWith('"')) {
-        raw = raw.slice(2, -1); // bỏ =" ở đầu và " ở cuối
+        raw = raw.slice(2, -1);
       }
 
-      // ✅ 3. Chuẩn hóa để chạy bằng eval (escape ngược \ và ")
+      // ✅ Excel hay escape "" thành ""
+      raw = raw.replace(/""/g, '"');
+
+      // ✅ Chạy code bằng Function constructor
       try {
-        const jsCode = JSON.parse(
-          '"' + raw
-            .replace(/\\/g, '\\\\')
-            .replace(/"/g, '\\"')
-            .replace(/\n/g, '\\n') + '"'
-        );
-
         if (!confirm("Bạn có chắc chắn muốn chạy đoạn mã này?")) return;
-        eval(jsCode);
-
+        const func = new Function(raw);
+        func();
       } catch (err) {
         alert("❌ Lỗi khi chạy mã: " + err.message);
         console.error(err);
