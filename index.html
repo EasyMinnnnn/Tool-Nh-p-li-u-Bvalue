@@ -1,13 +1,14 @@
 <!DOCTYPE html>
-<html>
+<html lang="vi">
 <head>
-  <meta charset="UTF-8">
-  <title>🧠 Auto Fill Executor</title>
+  <meta charset="UTF-8" />
+  <title>Auto Fill Executor</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      margin: 40px auto;
-      max-width: 800px;
+      font-family: sans-serif;
+      max-width: 960px;
+      margin: 2rem auto;
+      padding: 2rem;
     }
     textarea {
       width: 100%;
@@ -16,54 +17,36 @@
       font-size: 14px;
     }
     button {
-      margin-top: 10px;
-      padding: 10px 20px;
+      margin-top: 1rem;
+      padding: 0.5rem 1rem;
       font-size: 16px;
-      cursor: pointer;
-    }
-    label {
-      display: block;
-      margin-top: 10px;
     }
   </style>
 </head>
 <body>
-  <h2>🧠 Auto Fill Executor</h2>
+  <h1>🧠 Auto Fill Executor</h1>
   <p>Dán đoạn JavaScript từ Google Sheets vào ô bên dưới, rồi bấm "Run".</p>
-
-  <textarea id="code" placeholder="Dán code từ Google Sheet vào đây..."></textarea>
-
-  <label>
-    <input type="checkbox" id="fromExcel" checked>
-    Mã dán từ Google Sheets (xử lý chuỗi `""`)
-  </label>
-
+  <textarea id="codeInput" placeholder="Dán code từ Google Sheet vào đây..."></textarea>
+  <br />
   <button onclick="runCode()">▶️ Run</button>
 
   <script>
     function runCode() {
-      let raw = document.getElementById("code").value.trim();
-
-      // 1. Bỏ dấu = "..." nếu dùng từ Google Sheets
-      if (raw.startsWith("=\"") && raw.endsWith("\"")) {
-        raw = raw.slice(2, -1);
-      }
-
-      // 2. Xử lý escape chuỗi từ Excel
-      if (document.getElementById("fromExcel").checked) {
-        raw = raw
-          .replace(/""/g, '"')     // Excel: "" => "
-          .replace(/\\"/g, '"')     // Nếu có escape lỗi
-          .replace(/\\n/g, '\n')    // Hiện xuống dòng
-          .replace(/\\t/g, '\t');   // Tab nếu có
-      }
+      const raw = document.getElementById("codeInput").value;
 
       try {
-        if (!confirm("Bạn có chắc chắn muốn chạy đoạn mã này?")) return;
-        eval(raw);
-      } catch (err) {
-        alert("❌ Lỗi khi chạy mã: " + err.message);
-        console.error(err);
+        // Nếu người dùng copy từ Excel dạng "=...", thì loại bỏ đoạn đó
+        const cleaned = raw.replace(/^\s*=+/, "").trim();
+
+        // Thử xử lý JSON string nếu có dấu "" bị dư (Excel double quote)
+        const evalSafe = cleaned.replace(/""/g, '"');
+
+        // Gán lại vào Function để cho phép các lệnh async hoạt động
+        const asyncFn = new Function(`(async () => { ${evalSafe} })()`);
+        asyncFn();
+      } catch (e) {
+        alert("❌ Lỗi khi chạy mã: " + e.message);
+        console.error(e);
       }
     }
   </script>
