@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Auto Fill Runner</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 40px auto;
+      max-width: 800px;
+    }
+    textarea {
+      width: 100%;
+      height: 300px;
+      font-family: monospace;
+      font-size: 14px;
+    }
+    button {
+      margin-top: 10px;
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h2>🧠 Auto Fill Executor</h2>
+  <p>Dán đoạn JavaScript từ Google Sheet vào ô bên dưới, rồi bấm "Run".</p>
+  <textarea id="code" placeholder="Dán code từ Google Sheet vào đây..."></textarea><br/>
+  <button onclick="runCode()">▶️ Run</button>
+
+  <script>
+    function runCode() {
+      const code = document.getElementById("code").value;
+      if (!code) return alert("Vui lòng dán mã vào ô.");
+      if (!confirm("Bạn có chắc muốn chạy đoạn mã này?")) return;
+      try {
+        eval(code);  // Thực thi mã giống F12 Console
+      } catch (err) {
+        alert("❌ Lỗi khi chạy mã: " + err.message);
+        console.error(err);
+      }
+    }
+  </script>
+</body>
+</html>
